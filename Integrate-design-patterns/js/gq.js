@@ -3,7 +3,7 @@
     var doc = window.document;
 
     var gQ = function (selector, context){
-        return q(selector);
+        return q.query(selector, context);
     };
 
     gQ.loadJS = function (path, callback){
@@ -50,13 +50,10 @@
 
     gQ.ready(function(){
         if(doc.querySelectorAll && doc.querySelectorAll('body:first-of-type')){
-            q = function(parm) {
-                return doc.querySelectorAll(parm);
-            };
-            gQ.start();
+            q = new NativeQuery();
         }else{
-            loadScript('js/sizzle.min.js', function(){
-                q = Sizzle;
+            gQ.loadJS('js/sizzle.min.js', function(){
+                q = new SizzleAdapter(Sizzle);
                 gQ.start();
             });
         }
@@ -66,6 +63,12 @@
     NativeQuery.prototype.query = function (selector, context) {
         context = context || doc;
         return context.querySelectorAll(selector);
+    };
+
+    SizzleAdapter = function(lib){this.lib = lib;};
+    SizzleAdapter.prototype.query = function (selector, context) {
+        context = context || doc;
+        return this.lib(selector, context);
     };
 
     if(!window.gQ){
