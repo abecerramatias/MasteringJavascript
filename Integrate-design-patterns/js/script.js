@@ -1,5 +1,7 @@
 console.log(gQ.version() + '----------------------------------');
 
 gQ.start = function () {
-    console.log(gQ('.article'));
+    console.log('start...');
+    gQ('#msg').text('change my copy');
+    gQ('li').text("update me");
 };
