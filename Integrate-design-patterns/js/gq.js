@@ -1,6 +1,6 @@
 (function (scope, isForgiving){
     var version = 1.0003;
-    var doc = window.document;
+    var doc = scope.document;
 
     var gQ = function (selector, context){
         return q.query(selector, context);
@@ -25,7 +25,7 @@
     }
 
     gQ.ready = function (fun){
-        var last = window.onload;
+        var last = scope.onload;
         var isReady= false;
 
         if(doc.addEventListener){
@@ -36,7 +36,7 @@
             });
         }
 
-        window.onload = function(){
+        scope.onload = function(){
             if(last) last();
             if(isReady) fun();
         }
@@ -49,7 +49,10 @@
     };
 
     gQ.ready(function(){
-        if(doc.querySelectorAll && doc.querySelectorAll('body:first-of-type')){
+        if(false && 'jQuery' in scope){
+            q = new JQueryAdapter(scope.jQuery);
+            gQ.start();
+        }else if(doc.querySelectorAll && doc.querySelectorAll('body:first-of-type')){
             q = new NativeQuery();
         }else{
             gQ.loadJS('js/sizzle.min.js', function(){
@@ -62,22 +65,31 @@
     NativeQuery = function () {}
     NativeQuery.prototype.query = function (selector, context) {
         context = context || doc;
+        console.log("NativeQuery:");
         return context.querySelectorAll(selector);
     };
 
     SizzleAdapter = function(lib){this.lib = lib;};
     SizzleAdapter.prototype.query = function (selector, context) {
         context = context || doc;
+        console.log("SizzleAdapter:");
         return this.lib(selector, context);
     };
 
-    if(!window.gQ){
-        window.gQ = gQ;
+    JQueryAdapter = function(lib){this.lib = lib;};
+    JQueryAdapter.prototype.query = function (selector, context) {
+        context = context || doc;
+        console.log("JQueryAdapter:");
+        return this.lib(selector, context).get();
+    };
+
+    if(!scope.gQ){
+        scope.gQ = gQ;
     }else{
-        if(isForgiving && window.gQ.version){
-            window.gQ = window.gQ.version() > version ? window.gQ : gQ;
+        if(isForgiving && scope.gQ.version){
+            scope.gQ = scope.gQ.version() > version ? scope.gQ : gQ;
         }else{
-            throw new Error("The variable window.gQ already exists!");
+            throw new Error("The variable scope.gQ already exists!");
         }
     }
 }(window, true));
