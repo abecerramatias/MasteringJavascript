@@ -46,8 +46,8 @@
         var len = item.length;
         var out = [];
 
-        if(len > 0) {
-            for(var i = 0; i < len; i++){
+        if (len > 0) {
+            for (var i = 0; i < len; i++) {
                 out[i] = item[i];
             }
         } else {
@@ -65,21 +65,41 @@
     };
 
     gQ.ready(function () {
-        if (false && 'jQuery' in scope) {
-            q = new JQueryAdapter(scope.jQuery, doc);
+        if ('jQuery' in scope) {
+            q = QueryFacade.create(JQueryAdapter, scope.jQuery, doc);
             gQ.start();
         } else if (doc.querySelectorAll && doc.querySelectorAll('body:first-of-type')) {
-            q = new NativeQuery(doc);
+            q = QueryFacade.create(NativeQuery, null, doc);
             gQ.start();
         } else {
             gQ.loadJS('js/sizzle.min.js', function () {
-                q = new SizzleAdapter(Sizzle);
+                q = QueryFacade.create(SizzleAdapter, Sizzle, doc);
                 gQ.start();
             });
         }
     });
 
-    NativeQuery = function (context) {
+    QueryFacade = function (adapter) {
+        this.adapter = adapter;
+    };
+
+    QueryFacade.create = function (adapter, lib, context) {
+        return new QueryFacade(new adapter(lib, context));
+    };
+
+    QueryFacade.prototype.dom = function(){
+        return this.adapter.context;
+    };
+
+    QueryFacade.prototype.query = function (selector, context) {
+        return new QueryFacade(this.adapter.query(selector, context));
+    };
+
+    QueryFacade.prototype.text = function (value) {
+        return this.adapter.text(value);
+    };
+
+    NativeQuery = function (lib, context) {
         this.context = context;
     };
 
@@ -92,7 +112,7 @@
     NativeQuery.prototype.text = function (value) {
         innerText = (this.context[0].innerText === undefined) ? 'textContent' : 'innerText';
 
-        for(var item in this.context) {
+        for (var item in this.context) {
             this.context[item][innerText] = value;
         }
         return value;
