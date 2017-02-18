@@ -80,23 +80,21 @@
     });
 
     QueryFacade = function (adapter) {
-        this.adapter = adapter;
+        var dom = function(){
+                return adapter.context;
+            },
+            query = function(selector, context){
+                return QueryFacade(adapter.query(selector, context));
+            },
+            text = function (value) {
+                return adapter.text(value);
+            };
+
+            return {dom:dom, query:query, text:text};
     };
 
     QueryFacade.create = function (adapter, lib, context) {
         return new QueryFacade(new adapter(lib, context));
-    };
-
-    QueryFacade.prototype.dom = function(){
-        return this.adapter.context;
-    };
-
-    QueryFacade.prototype.query = function (selector, context) {
-        return new QueryFacade(this.adapter.query(selector, context));
-    };
-
-    QueryFacade.prototype.text = function (value) {
-        return this.adapter.text(value);
     };
 
     NativeQuery = function (lib, context) {
