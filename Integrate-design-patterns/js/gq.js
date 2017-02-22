@@ -80,17 +80,17 @@
     });
 
     QueryFacade = function (adapter) {
-        var dom = function(){
+        var dom = function () {
                 return adapter.context;
             },
-            query = function(selector, context){
+            query = function (selector, context) {
                 return QueryFacade(adapter.query(selector, context));
             },
             text = function (value) {
                 return adapter.text(value);
             };
 
-            return {dom:dom, query:query, text:text};
+        return {dom: dom, query: query, text: text};
     };
 
     QueryFacade.create = function (adapter, lib, context) {
@@ -138,6 +138,31 @@
     JQueryAdapter.prototype.text = function (value) {
         return this.target.text(value);
     };
+
+    var Ticker = (function () {
+        var instance;
+
+        function create() {
+            //props
+            //methods
+
+            function add(interval, times, callback, name) {
+
+            }
+
+            return {add: add};
+        }
+
+        return {
+            getInstance: function () {
+                if (!instance) {
+                    instance = create();
+                }
+
+                return instance;
+            }
+        }
+    })();
 
     if (!scope.gQ) {
         scope.gQ = gQ;
