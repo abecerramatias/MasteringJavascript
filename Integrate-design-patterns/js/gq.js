@@ -143,11 +143,41 @@
         var instance;
 
         function create() {
-            //props
-            //methods
+            var intervalID,
+                currentInterval = 0,
+                maxInterval = 0,
+                index = 0,
+                sensitivity = 100,
+                methods = {};
 
+            //public methods
             function add(interval, times, callback, name) {
+                var realInterval = interval - interval % sensitivity;
+                maxInterval = Math.max(realInterval, maxInterval);
+                name = name || (++index);
+                //TBD issue: the new name already exists.
 
+                if (methods[interval]) {
+                    methods[interval] = {};
+                }
+
+                methods[realInterval][name] = {times:times,
+                                            callback:callback,
+                                            interval:interval};
+
+                start();
+            }
+
+            //private methods
+            function start() {
+                if (intervalID) {
+                    intervalID = setInterval(runInterval, sensitivity);
+                }
+            }
+            
+            function runInterval() {
+                currentInterval = currentInterval % maxInterval;
+                currentInterval += sensitivity;
             }
 
             return {add: add};
@@ -163,6 +193,8 @@
             }
         }
     })();
+
+    Ticker.getInstance();
 
     if (!scope.gQ) {
         scope.gQ = gQ;
