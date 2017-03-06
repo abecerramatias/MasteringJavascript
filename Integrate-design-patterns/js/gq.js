@@ -79,6 +79,10 @@
         }
     });
 
+    gQ.ticker = function () {
+        return Ticker.getInstance();
+    };
+
     QueryFacade = function (adapter) {
         var dom = function () {
                 return adapter.context;
@@ -157,27 +161,50 @@
                 name = name || (++index);
                 //TBD issue: the new name already exists.
 
-                if (methods[interval]) {
+                if (!methods[interval]) {
                     methods[interval] = {};
                 }
 
-                methods[realInterval][name] = {times:times,
-                                            callback:callback,
-                                            interval:interval};
+                methods[realInterval][name] = {
+                    times: times,
+                    callback: callback,
+                    interval: interval
+                };
 
                 start();
             }
 
             //private methods
             function start() {
-                if (intervalID) {
+                if (!intervalID) {
                     intervalID = setInterval(runInterval, sensitivity);
                 }
             }
-            
+
             function runInterval() {
                 currentInterval = currentInterval % maxInterval;
                 currentInterval += sensitivity;
+
+                for (var interval in methods) {
+                    if (currentInterval % interval == 0) {
+                        processIntervalGroup(methods[interval]);
+                    }
+                }
+            }
+
+            function processIntervalGroup(group) {
+                var item;
+                for (var name in group) {
+                    item = group[name];
+                    item.callback();
+
+                    if (item.times == 0) {
+                        delete group[name];
+                    } else {
+                        --item.times;
+                    }
+                }
+
             }
 
             return {add: add};
@@ -194,7 +221,9 @@
         }
     })();
 
-    Ticker.getInstance();
+    // Ticker.getInstance().add(1000, -1, function () {
+    //     console.log("I'm called forever at 1000 ms");
+    // });
 
     if (!scope.gQ) {
         scope.gQ = gQ;
